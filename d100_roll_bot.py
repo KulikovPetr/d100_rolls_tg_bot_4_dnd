@@ -2,13 +2,28 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
 
-# загружаем токен бота
-with open('token.txt','r') as f:
-    BOT_TOKEN = f.readline()
+# загрузка токена бота из файла
+def bot_token_download():
+    with open('token.txt','r') as file:
+        return(file.readline())
 
+# загрузка д100 провалов из файла
+def d100_failure_download():
+    with open('d100_txt_DB_lol\d100_failure.txt') as file:
+        return(file.readlines())
+
+# загрузка д100 успехов из файла
+def d100_success_download():
+    with open('d100_txt_DB_lol\d100_success.txt') as file:
+        return(file.readlines())
+
+
+# сохранение списков д100 успехов и провалов
+d100_success_list = d100_success_download()
+d100_failure_list = d100_failure_download()
 
 # Создаем объекты бота и диспетчера
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(token=bot_token_download())
 dp = Dispatcher()
 
 
@@ -26,11 +41,17 @@ async def process_help_command(message: Message):
     )
 
 
-# Этот хэндлер будет срабатывать на любые ваши текстовые сообщения,
-# кроме команд "/start" и "/help"
+# Этот хэндлер будет срабатывать на числа от 1 до 100, означающие крит.успех.
+@dp.message(lambda x: x.text and x.text.isdigit() and 1 <= int(x.text) <= 100)
+async def send_d100_crit_success(message: Message):
+    await message.answer(d100_success_list[int(message.text)-1])
+
+# Этот хэндлер будет срабатывать на остальные любые сообщения
 @dp.message()
-async def send_d100_crit(message: Message):
-    await message.answer('boop')
+async def process_other_messages(message: Message):
+    await message.answer(
+            'Пришли число от 1 до 100.'
+        )
 
 
 if __name__ == '__main__':
