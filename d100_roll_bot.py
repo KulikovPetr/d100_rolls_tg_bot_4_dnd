@@ -18,6 +18,9 @@ def d100_success_download():
         return(file.readlines())
 
 
+# добавил словарь с состоянием одного пользователя.
+user = {'d_100_mode': None}
+
 # сохранение списков д100 успехов и провалов
 d100_success_list = d100_success_download()
 d100_failure_list = d100_failure_download()
@@ -40,11 +43,32 @@ async def process_help_command(message: Message):
         'Напиши мне число от 1 до 100, и я отвечу на него значением крита!'
     )
 
+# Этот хэндлер будет срабатывать на команду "/успех"
+@dp.message(Command(commands=['успех']))
+async def process_roll_success_command(message: Message):
+    user['d_100_mode'] = 'success'
+    await message.answer(
+        'О, так ты кританул? Ну-ка, и что у тебя на д100?'
+    )
+
+# Этот хэндлер будет срабатывать на команду "/провал"
+@dp.message(Command(commands=['провал']))
+async def process_roll_failure_command(message: Message):
+    user['d_100_mode'] = 'failure'
+    await message.answer(
+        'Единица? Харооооош! И что у тебя на д100, хехе?'
+    )
+
 
 # Этот хэндлер будет срабатывать на числа от 1 до 100, означающие крит.успех.
 @dp.message(lambda x: x.text and x.text.isdigit() and 1 <= int(x.text) <= 100)
 async def send_d100_crit_success(message: Message):
-    await message.answer(d100_success_list[int(message.text)-1])
+    if user['d_100_mode'] == 'success':
+        await message.answer(d100_success_list[int(message.text)-1])
+    elif user['d_100_mode'] == 'failure':
+        await message.answer(d100_failure_list[int(message.text)-1])
+    else:
+        await message.answer('Сначала выбери /успех или /провал, а потом уже пиши число')
 
 # Этот хэндлер будет срабатывать на остальные любые сообщения
 @dp.message()
